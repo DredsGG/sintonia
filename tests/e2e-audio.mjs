@@ -28,6 +28,8 @@ check('reforço ligado, antes de qualquer gesto: ainda fora do Web Audio (não a
 await gesto(p);
 n = await somando(p);
 check('depois do clique: AudioContext rodando, ganho 2 (200%) e som saindo', n && n.ganho === 2, n);
+await wait(1500); // o analisador ainda estabiliza logo após o 1º som: lê de novo antes de comparar
+n = await nivel(p);
 const rms200 = n && n.rms;
 await setSync({ reforcoPadrao: 100 }); await wait(1500);
 n = await somando(p);
