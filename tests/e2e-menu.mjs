@@ -116,7 +116,7 @@ await p.click('#sintonia-btn'); let ag = await until(agora);
 check('tudo desligado: aba Agora sem chaves de recursos desligados (nem Filtros, nem Esconder)', ag && ag.chaves === 0 && !ag.blocos.includes('imagem') && !ag.blocos.includes('esconder'), ag);
 check('tudo desligado: diz para ligar na aba Ajustes', ag && /aba Ajustes/.test(ag.texto));
 await p.keyboard.press('Escape');
-await setSync({ perfilCanal: true, velocidade: true, filtros: true, screenshot: true, loopAB: true, popup: true });
+await setSync({ perfilCanal: true, velocidade: true, filtros: true, screenshot: true, loopAB: true, popup: true, velPadrao: 1 }); // velPadrao volta a 1: o teste do limite (seção 3) deixou 16× e a extensão reaplica esse padrão, o que disputava com o 1× do 6b
 await wait(800); await p.click('#sintonia-btn'); ag = await until(async () => { const x = await agora(); return x && x.grupos.length === 2 ? x : null; });
 check('com recursos ligados: grupos "Este vídeo" e "Este canal · perfil"', ag && ag.grupos[0] === 'Este vídeo' && ag.grupos[1] === 'Este canal · perfil', ag && ag.grupos);
 check('Este vídeo: velocidade, filtros e foto; Este canal: o perfil salvo', ag && ag.blocos.includes('vel') && ag.blocos.includes('imagem') && ag.blocos.includes('player2') && ag.blocos.includes('canal'), ag && ag.blocos);
