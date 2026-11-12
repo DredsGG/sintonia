@@ -1,0 +1,50 @@
+name: Test
+
+# Loads Sintonia as a real unpacked extension in Chromium (Playwright) and runs the test suite against a
+# simulated YouTube (tests/mock.mjs, tests/mock-inscricoes.mjs): static checks, then the E2E files one by one.
+# The E2E files run one at a time on purpose: in parallel on a loaded machine, deadline-based checks flake.
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright and Chromium
+        run: |
+          cd tests
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Static checks (syntax, i18n, dates)
+        run: |
+          cd tests
+          node sintaxe-teste.mjs
+          node i18n-teste.mjs
+          node datas-teste.mjs
+
+      - name: E2E
+        run: |
+          cd tests
+          for t in e2e-base e2e-emdia e2e-fila e2e-player e2e-like e2e-menu e2e-opcoes e2e-audio e2e-sb e2e-player2 recarga-e2e; do
+            echo "::group::$t"; node "$t.mjs"; echo "::endgroup::"
+          done
+
+      # Frame screenshot and codec checks depend on the runner's Chromium and its download handling.
+      # Kept visible but not blocking until it has run green on the runner at least once.
+      - name: E2E image (frame screenshot, codecs)
+        continue-on-error: true
+        run: cd tests && node e2e-imagem.mjs
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: shots
+          path: tests/shots/**
