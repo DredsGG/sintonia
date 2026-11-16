@@ -6,7 +6,7 @@ const REPO = 'DredsGG/sintonia';
 const UPD_KEY = 'st.update';
 const YT_TABS = ['https://www.youtube.com/*'];
 const MAIN_JS = ['src/main.js'];
-const CONTENT = ['src/defaults.js', 'src/i18n.js', 'src/novidades.js', 'src/comum.js', 'src/vendor/qrcode.js', 'src/apoio.js', 'src/datas.js', 'src/core.js', 'src/ui.js', 'src/emdia.js', 'src/fila.js', 'src/atalhos.js', 'src/player.js', 'src/player2.js', 'src/like.js', 'src/distracoes.js', 'src/audio.js', 'src/sb.js', 'src/imagem.js', 'src/comentarios.js'];
+const CONTENT = ['src/defaults.js', 'src/i18n.js', 'src/novidades.js', 'src/comum.js', 'src/vendor/qrcode.js', 'src/apoio.js', 'src/datas.js', 'src/core.js', 'src/ui.js', 'src/emdia.js', 'src/fila.js', 'src/inscritos.js', 'src/atalhos.js', 'src/player.js', 'src/player2.js', 'src/like.js', 'src/distracoes.js', 'src/audio.js', 'src/sb.js', 'src/imagem.js', 'src/comentarios.js'];
 
 const cmpVer = (a, b) => {
   const pa = String(a).split('.').map((n) => parseInt(n, 10) || 0), pb = String(b).split('.').map((n) => parseInt(n, 10) || 0);

@@ -2,6 +2,10 @@
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 globalThis.SINT_NOVIDADES = {
   pt: {
+    '1.2.0': [
+      'Selo "Inscrito": um ✓ ao lado do nome do canal nos vídeos do início, dos relacionados e da busca quando você já é inscrito (Ajustes > Canais em que você é inscrito).',
+      'Dá para esmaecer os vídeos de canais inscritos (voltam ao normal com o mouse; nunca esconde). A Sintonia lê a sua lista de inscrições, só leitura, e guarda só no navegador.',
+    ],
     '1.1.0': [
       'Em Dia: o vídeo da fila que acaba passa sozinho para o próximo, mesmo com a reprodução automática do YouTube desligada, com loop ligado ou depois de um anúncio.',
       'Fim da fila: aparece "Fila concluída ✓" com o resumo e, em 5 segundos, a Sintonia volta para a Em Dia (Ficar aqui ou Esc cancela).',
@@ -77,6 +81,10 @@ globalThis.SINT_NOVIDADES = {
     ],
   },
   en: {
+    '1.2.0': [
+      '"Subscribed" badge: a ✓ next to the channel name on videos in Home, related and search when you already subscribe (Settings > Channels you subscribe to).',
+      'You can also fade videos from subscribed channels (back to normal on hover; it never hides anything). Sintonia reads your subscription list, read-only, and keeps it only in your browser.',
+    ],
     '1.1.0': [
       'Em Dia: a queued video that ends now moves on to the next one by itself, even with YouTube autoplay off, with loop on, or after an ad.',
       'End of the queue: "Queue complete ✓" shows a summary and, after 5 seconds, Sintonia goes back to Em Dia (Stay here or Esc cancels).',
@@ -152,6 +160,10 @@ globalThis.SINT_NOVIDADES = {
     ],
   },
   es: {
+    '1.2.0': [
+      'Insignia "Suscrito": un ✓ junto al nombre del canal en los videos de Inicio, relacionados y búsqueda cuando ya estás suscrito (Ajustes > Canales a los que estás suscrito).',
+      'También puedes atenuar los videos de canales suscritos (vuelven a la normalidad al pasar el mouse; nunca oculta nada). Sintonia lee tu lista de suscripciones, solo lectura, y la guarda solo en tu navegador.',
+    ],
     '1.1.0': [
       'Em Dia: el video de la cola que termina pasa solo al siguiente, incluso con la reproducción automática de YouTube desactivada, con repetición activada o después de un anuncio.',
       'Fin de la cola: aparece "Cola completada ✓" con el resumen y, en 5 segundos, Sintonia vuelve a Em Dia (Quedarme aquí o Esc cancela).',

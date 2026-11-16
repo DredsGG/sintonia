@@ -17,7 +17,7 @@ O vídeo de teste é `media/ep.webm` (100 s, WebM, porque o Chromium do Playwrig
 Regressão inteira (em paralelo, resume no fim):
 ```
 node sintaxe-teste.mjs && node i18n-teste.mjs && node datas-teste.mjs
-bash rodar.sh e2e-base e2e-emdia e2e-fila e2e-player e2e-like e2e-audio e2e-sb e2e-player2 e2e-imagem recarga-e2e
+bash rodar.sh e2e-base e2e-emdia e2e-fila e2e-inscritos e2e-player e2e-like e2e-audio e2e-sb e2e-player2 e2e-imagem recarga-e2e
 bash rodar.sh ao-vivo
 ```
 | Teste | Fase | O que cobre |
@@ -29,6 +29,7 @@ bash rodar.sh ao-vivo
 | `recarga-e2e.mjs` | 0 | regra 7a (detecção da versão nova na pasta e reinjeção; a recarga em si o Playwright não deixa) |
 | `e2e-emdia.mjs` | 1 | Em Dia (Inscrições simuladas, 150 itens) e a fila |
 | `e2e-fila.mjs` | 1 | v1.1.0: avanço garantido da fila (plano A/B, bloco 50→51, autoplay desligado, loop, A–B, 8×, anúncio, SponsorBlock, tela cheia, miniplayers) e fim da fila (aviso, volta para a Em Dia) |
+| `e2e-inscritos.mjs` | 1.2 | selo "Inscrito" e esmaecer: início, relacionados e busca, lista em 3 páginas (e 2.000 canais), card reaproveitado, Inscrever-se/Cancelar, 24 h, sem login, só leitura |
 | `e2e-player.mjs` | 2 | velocidade que não volta para 1×, por canal, volume, qualidade, roda, atalhos, teatro, cinema |
 | `e2e-like.mjs` | 3 | like automático e esconder distrações |
 | `e2e-audio.mjs` | 4 | reforço, igualar, nunca mudo (mede o som pelo analisador) |

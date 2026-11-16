@@ -1,6 +1,11 @@
 // Sintonia — textos em português, inglês e espanhol (regra 13 do hub). Texto novo entra nos três idiomas.
 // Usado pelo content script, pela página de Ajustes e pelo guia COMO-INSTALAR.html.
 (() => {
+  const tempoAtras = (em, l) => {
+    const m = Math.max(0, Math.round((Date.now() - (em || 0)) / 60000)), h = Math.round(m / 60), d = Math.round(h / 24);
+    const t = { pt: ['agora', 'há ' + m + ' min', 'há ' + h + ' h', 'há ' + d + (d === 1 ? ' dia' : ' dias')], en: ['just now', m + ' min ago', h + ' h ago', d + (d === 1 ? ' day ago' : ' days ago')], es: ['ahora', 'hace ' + m + ' min', 'hace ' + h + ' h', 'hace ' + d + (d === 1 ? ' día' : ' días')] }[l];
+    return m < 1 ? t[0] : m < 60 ? t[1] : h < 24 ? t[2] : t[3];
+  };
   const T = {
     pt: {
       name: 'Sintonia', tagline: 'O YouTube do seu jeito',
@@ -26,6 +31,7 @@
       edPulado: 'Pulado', edVisto: 'Visto', edDesfazer: 'Desfazer', edNaoQuero: 'Não quero ver',
       edCarregando: (n) => `Carregando mais vídeos das Inscrições… (${n} lidos)`, edTeto: (n) => `Parei em ${n} vídeos (limite).`,
       edVazio: 'Tudo em dia ✓', edVazioSub: 'Nada para ver nas Inscrições neste período.', edSemFeed: 'Não achei a lista das Inscrições', edSemFeedSub: 'Entre na sua conta do YouTube ou recarregue a página. Se continuar, use Relatar bug.',
+      selo: 'Inscrito', seloDica: 'Você é inscrito neste canal', inscTit: 'Inscrições', inscCarregando: 'Lendo a sua lista de inscrições…', inscSemLogin: 'Entre na sua conta do YouTube para ver os inscritos.', inscErro: 'Não consegui ler a lista agora. Tento de novo depois.', inscAtualizar: 'Atualizar lista', inscN: (n, em) => `${n} ${n === 1 ? 'canal' : 'canais'} · atualizada ${tempoAtras(em, 'pt')}`,
       filaPular: 'Pular', filaSair: 'Sair da fila', filaFim: 'Fila concluída ✓', filaResumo: (n, m) => `${n} ${n === 1 ? 'visto' : 'vistos'} · ${m} ${m === 1 ? 'pulado' : 'pulados'}`, filaVolta: (s) => `Voltando para a Em Dia em ${s} s`, filaFicar: 'Ficar aqui', filaIrAgora: 'Ir agora',
       // painel
       velocidade: 'Velocidade', velDica: 'Velocidade · clique: próxima (depois de 3× volta a 1×) · botão direito ou Shift+clique: anterior · roda do mouse: ajuste fino', volume: 'Volume', menos: 'Diminuir', mais: 'Aumentar',
@@ -105,7 +111,9 @@
       velNotaCanal: 'Ao mudar aqui, fica salvo para este canal (perfil).', velNotaVideo: 'Vale só para este vídeo.', reforcoNotaGlobal: 'Muda o reforço de todos os vídeos.',
       tagCanal: 'por canal', buscaVazia: 'Nenhum ajuste com esse nome.',
       barAB0: 'Repetir trecho: clique para marcar o início (A)', barAB1: (a) => `Início em ${a}. Clique para marcar o fim (B) · botão direito: limpar`, barAB2: (a, b) => `Repetindo de ${a} a ${b}. Clique para desligar`,
-      'sec.canal': 'Perfil por canal', 'sec.comentarios': 'Comentários',
+      'sec.canal': 'Perfil por canal', 'sec.inscritos': 'Canais em que você é inscrito', 'sec.comentarios': 'Comentários',
+      'set.seloInscrito': 'Selo "Inscrito" nos vídeos', 'set.seloInscrito_': 'Um ✓ ao lado do nome do canal nos vídeos do início, dos relacionados e da busca, quando você já é inscrito. A Sintonia lê a sua lista de inscrições no YouTube (só leitura) e guarda só no navegador.',
+      'set.esmaecerInscritos': 'Esmaecer vídeos de inscritos', 'set.esmaecerInscritos_': 'Os vídeos de canais em que você é inscrito ficam apagados e voltam ao normal com o mouse em cima. Nunca esconde. Só funciona com o selo ligado.',
       'set.comentOrdem': 'Ordem dos comentários', 'set.comentOrdem_': 'Escolhe sozinha a ordem quando os comentários carregam',
       'opt.comentOrdem': { '': 'Como o YouTube mostrar', recentes: 'Mais recentes', principais: 'Principais' },
       sbStatusConsultando: 'Consultando o SponsorBlock…', sbStatusErro: 'Não deu para consultar o SponsorBlock agora. Tentando de novo.',
@@ -139,6 +147,7 @@
         ['Tudo desligado de fábrica', 'Nada muda no YouTube até você ligar. A aba <b>Ajustes</b> do menu tem cada recurso com a sua chave, uma explicação e a busca. A aba <b>Agora</b> mostra os controles do que está ligado.'],
         ['Cada canal lembra', 'Ligue <b>Lembrar por canal</b> e o que você muda no player (velocidade, volume, qualidade, reforço) fica salvo só para aquele canal. Tudo fica no seu navegador: nada do que você assiste sai daqui.'],
         ['Em Dia', 'Nas <b>Inscrições</b>, ligue a <b>Em Dia</b> nos ajustes: o botão <b>Em Dia</b>, ao lado de "Todas as inscrições", mostra os vídeos de hoje, 3 ou 7 dias. Marque o que não quer ver (ou use <b>Selecionar</b>) e clique em <b>Começar a assistir</b> para tocar o resto em sequência: cada vídeo que acaba passa para o próximo e, no fim da fila, a Sintonia avisa e volta para a Em Dia.'],
+        ['Selo "Inscrito"', 'Em <b>Ajustes</b>, ligue o <b>Selo "Inscrito"</b>: um ✓ aparece ao lado do canal nos vídeos do início, dos relacionados e da busca quando você já é inscrito. Dá para <b>esmaecer</b> esses vídeos (nunca esconde). A Sintonia só lê a sua lista de inscrições e guarda no navegador.'],
         ['Desligue o Enhancer for YouTube', 'Se você usa o <b>Enhancer for YouTube</b>, desligue ele em <b>chrome://extensions</b>. As duas brigam pela velocidade e pelo volume.'],
         ['Rodapé', '<b>Procurar atualização</b>, <b>Relatar bug</b>, o <b>?</b> para ver este tutorial de novo e o idioma.'],
       ],
@@ -156,7 +165,7 @@
         },
         enh: 'Usa o <b>Enhancer for YouTube</b>? Desligue ele na mesma página de extensões: as duas brigam pela velocidade e pelo volume.',
         upd: ['Quando sair versão nova, a Sintonia mostra um aviso no YouTube com o botão <b>Atualizar</b>.', 'O zip novo vai para Downloads. Extraia por cima da mesma pasta (substituir tudo).', 'Em até 1 minuto a Sintonia percebe e se recarrega sozinha, sem fechar o vídeo.'],
-        priv: 'Privacidade: nada do que você assiste sai do navegador. Sem conta, sem servidor próprio, sem rastreio. A Sintonia só fala com o api.github.com (versão nova) e, se você ligar "Pular partes", com o sponsor.ajay.app (SponsorBlock), mandando só os 4 primeiros caracteres de um código do vídeo, nunca o vídeo.',
+        priv: 'Privacidade: nada do que você assiste sai do navegador. Sem conta, sem servidor próprio, sem rastreio. A Sintonia lê a sua lista de inscrições no YouTube (só leitura, se você ligar o selo "Inscrito") e guarda só no navegador. Fora o próprio YouTube, só fala com o api.github.com (versão nova) e, se você ligar "Pular partes", com o sponsor.ajay.app (SponsorBlock), mandando só os 4 primeiros caracteres de um código do vídeo, nunca o vídeo.',
       },
     },
     en: {
@@ -182,6 +191,7 @@
       edPulado: 'Skipped', edVisto: 'Watched', edDesfazer: 'Undo', edNaoQuero: 'Not for me',
       edCarregando: (n) => `Loading more videos from Subscriptions… (${n} read)`, edTeto: (n) => `Stopped at ${n} videos (limit).`,
       edVazio: 'All caught up ✓', edVazioSub: 'Nothing to watch in Subscriptions for this period.', edSemFeed: 'Could not find the Subscriptions list', edSemFeedSub: 'Sign in to YouTube or reload the page. If it keeps happening, use Report a bug.',
+      selo: 'Subscribed', seloDica: 'You are subscribed to this channel', inscTit: 'Subscriptions', inscCarregando: 'Reading your subscription list…', inscSemLogin: 'Sign in to YouTube to see subscribed channels.', inscErro: 'Could not read the list right now. Will try again later.', inscAtualizar: 'Refresh list', inscN: (n, em) => `${n} ${n === 1 ? 'channel' : 'channels'} · updated ${tempoAtras(em, 'en')}`,
       filaPular: 'Skip', filaSair: 'Leave queue', filaFim: 'Queue complete ✓', filaResumo: (n, m) => `${n} watched · ${m} skipped`, filaVolta: (s) => `Back to Em Dia in ${s} s`, filaFicar: 'Stay here', filaIrAgora: 'Go now',
       velocidade: 'Speed', velDica: 'Speed · click: next (after 3× back to 1×) · right-click or Shift+click: previous · mouse wheel: fine-tune', volume: 'Volume', menos: 'Decrease', mais: 'Increase',
       'sec.video': 'Speed, quality and volume', 'sec.controles': 'Mouse and keyboard', 'sec.tela': 'Screen',
@@ -260,7 +270,9 @@
       velNotaCanal: 'Changes here are saved for this channel (profile).', velNotaVideo: 'Applies only to this video.', reforcoNotaGlobal: 'Changes the boost for all videos.',
       tagCanal: 'per channel', buscaVazia: 'No setting with that name.',
       barAB0: 'Loop a part: click to mark the start (A)', barAB1: (a) => `Start at ${a}. Click to mark the end (B) · right-click: clear`, barAB2: (a, b) => `Looping ${a} to ${b}. Click to turn off`,
-      'sec.canal': 'Per-channel profile', 'sec.comentarios': 'Comments',
+      'sec.canal': 'Per-channel profile', 'sec.inscritos': 'Channels you subscribe to', 'sec.comentarios': 'Comments',
+      'set.seloInscrito': '"Subscribed" badge on videos', 'set.seloInscrito_': 'A ✓ next to the channel name on videos in Home, related and search when you already subscribe. Sintonia reads your subscription list on YouTube (read-only) and keeps it only in your browser.',
+      'set.esmaecerInscritos': 'Fade videos from subscribed channels', 'set.esmaecerInscritos_': 'Videos from channels you subscribe to are dimmed and return to normal on hover. Never hides anything. Only works with the badge on.',
       'set.comentOrdem': 'Comment order', 'set.comentOrdem_': 'Picks the order automatically when comments load',
       'opt.comentOrdem': { '': 'As YouTube shows', recentes: 'Newest first', principais: 'Top comments' },
       sbStatusConsultando: 'Checking SponsorBlock…', sbStatusErro: 'Could not reach SponsorBlock right now. Trying again.',
@@ -291,6 +303,7 @@
         ['Everything off by default', 'Nothing changes on YouTube until you turn it on. The <b>Settings</b> tab of the menu has each feature with its switch, a short explanation and search. The <b>Now</b> tab shows the controls of what is on.'],
         ['Each channel remembers', 'Turn on <b>Remember per channel</b> and what you change in the player (speed, volume, quality, boost) is saved for that channel only. Everything stays in your browser: nothing you watch leaves it.'],
         ['Em Dia', 'On <b>Subscriptions</b>, turn on <b>Em Dia</b> in settings: the <b>Em Dia</b> button, next to "All subscriptions", shows the videos from today, 3 or 7 days. Mark what you do not want (or use <b>Select</b>) and click <b>Start watching</b> to play the rest in a row: each video that ends moves on to the next and, at the end of the queue, Sintonia lets you know and goes back to Em Dia.'],
+        ['"Subscribed" badge', 'In <b>Settings</b>, turn on the <b>"Subscribed" badge</b>: a ✓ shows next to the channel on videos in Home, related and search when you already subscribe. You can also <b>fade</b> those videos (it never hides them). Sintonia only reads your subscription list and keeps it in your browser.'],
         ['Turn off Enhancer for YouTube', 'If you use <b>Enhancer for YouTube</b>, turn it off in <b>chrome://extensions</b>. Both fight over speed and volume.'],
         ['Footer', '<b>Check for updates</b>, <b>Report a bug</b>, the <b>?</b> to see this tutorial again, and the language.'],
       ],
@@ -307,7 +320,7 @@
         },
         enh: 'Using <b>Enhancer for YouTube</b>? Turn it off on the same extensions page: both fight over speed and volume.',
         upd: ['When a new version comes out, Sintonia shows a notice on YouTube with an <b>Update</b> button.', 'The new zip goes to Downloads. Extract it over the same folder (replace everything).', 'Within 1 minute Sintonia notices and reloads by itself, without closing the video.'],
-        priv: 'Privacy: nothing you watch leaves your browser. No account, no server of our own, no tracking. Sintonia only talks to api.github.com (new versions) and, if you turn on "Skip segments", to sponsor.ajay.app (SponsorBlock), sending only the first 4 characters of a code of the video, never the video.',
+        priv: 'Privacy: nothing you watch leaves your browser. No account, no server of our own, no tracking. Sintonia reads your subscription list on YouTube (read-only, if you turn on the "Subscribed" badge) and keeps it only in your browser. Besides YouTube itself, it only talks to api.github.com (new versions) and, if you turn on "Skip segments", to sponsor.ajay.app (SponsorBlock), sending only the first 4 characters of a code of the video, never the video.',
       },
     },
     es: {
@@ -333,6 +346,7 @@
       edPulado: 'Saltado', edVisto: 'Visto', edDesfazer: 'Deshacer', edNaoQuero: 'No quiero ver',
       edCarregando: (n) => `Cargando más videos de Suscripciones… (${n} leídos)`, edTeto: (n) => `Me detuve en ${n} videos (límite).`,
       edVazio: 'Todo al día ✓', edVazioSub: 'Nada por ver en Suscripciones en este período.', edSemFeed: 'No encontré la lista de Suscripciones', edSemFeedSub: 'Inicia sesión en YouTube o recarga la página. Si sigue, usa Reportar error.',
+      selo: 'Suscrito', seloDica: 'Estás suscrito a este canal', inscTit: 'Suscripciones', inscCarregando: 'Leyendo tu lista de suscripciones…', inscSemLogin: 'Inicia sesión en YouTube para ver los canales suscritos.', inscErro: 'No pude leer la lista ahora. Lo intento de nuevo más tarde.', inscAtualizar: 'Actualizar lista', inscN: (n, em) => `${n} ${n === 1 ? 'canal' : 'canales'} · actualizada ${tempoAtras(em, 'es')}`,
       filaPular: 'Saltar', filaSair: 'Salir de la cola', filaFim: 'Cola completada ✓', filaResumo: (n, m) => `${n} ${n === 1 ? 'visto' : 'vistos'} · ${m} ${m === 1 ? 'omitido' : 'omitidos'}`, filaVolta: (s) => `Volviendo a Em Dia en ${s} s`, filaFicar: 'Quedarme aquí', filaIrAgora: 'Ir ahora',
       velocidade: 'Velocidad', velDica: 'Velocidad · clic: siguiente (después de 3× vuelve a 1×) · clic derecho o Shift+clic: anterior · rueda del mouse: ajuste fino', volume: 'Volumen', menos: 'Bajar', mais: 'Subir',
       'sec.video': 'Velocidad, calidad y volumen', 'sec.controles': 'Mouse y teclado', 'sec.tela': 'Pantalla',
@@ -411,7 +425,9 @@
       velNotaCanal: 'Los cambios aquí se guardan para este canal (perfil).', velNotaVideo: 'Vale solo para este video.', reforcoNotaGlobal: 'Cambia el refuerzo de todos los videos.',
       tagCanal: 'por canal', buscaVazia: 'Ningún ajuste con ese nombre.',
       barAB0: 'Repetir tramo: haz clic para marcar el inicio (A)', barAB1: (a) => `Inicio en ${a}. Haz clic para marcar el final (B) · clic derecho: borrar`, barAB2: (a, b) => `Repitiendo de ${a} a ${b}. Haz clic para desactivar`,
-      'sec.canal': 'Perfil por canal', 'sec.comentarios': 'Comentarios',
+      'sec.canal': 'Perfil por canal', 'sec.inscritos': 'Canales a los que estás suscrito', 'sec.comentarios': 'Comentarios',
+      'set.seloInscrito': 'Insignia "Suscrito" en los videos', 'set.seloInscrito_': 'Un ✓ junto al nombre del canal en los videos de Inicio, relacionados y búsqueda cuando ya estás suscrito. Sintonia lee tu lista de suscripciones en YouTube (solo lectura) y la guarda solo en tu navegador.',
+      'set.esmaecerInscritos': 'Atenuar videos de suscritos', 'set.esmaecerInscritos_': 'Los videos de canales a los que estás suscrito se ven apagados y vuelven a la normalidad al pasar el mouse. Nunca oculta nada. Solo funciona con la insignia activada.',
       'set.comentOrdem': 'Orden de los comentarios', 'set.comentOrdem_': 'Elige el orden automáticamente cuando cargan los comentarios',
       'opt.comentOrdem': { '': 'Como lo muestre YouTube', recentes: 'Más recientes', principais: 'Principales' },
       sbStatusConsultando: 'Consultando SponsorBlock…', sbStatusErro: 'No se pudo consultar SponsorBlock ahora. Intentando de nuevo.',
@@ -442,6 +458,7 @@
         ['Todo desactivado de fábrica', 'Nada cambia en YouTube hasta que lo actives. La pestaña <b>Ajustes</b> del menú tiene cada función con su interruptor, una explicación y la búsqueda. La pestaña <b>Ahora</b> muestra los controles de lo que está activado.'],
         ['Cada canal recuerda', 'Activa <b>Recordar por canal</b> y lo que cambias en el reproductor (velocidad, volumen, calidad, refuerzo) se guarda solo para ese canal. Todo queda en tu navegador: nada de lo que ves sale de aquí.'],
         ['Em Dia', 'En <b>Suscripciones</b>, activa <b>Em Dia</b> en los ajustes: el botón <b>Em Dia</b>, junto a "Todas las suscripciones", muestra los videos de hoy, 3 o 7 días. Marca lo que no quieres ver (o usa <b>Seleccionar</b>) y haz clic en <b>Empezar a ver</b> para reproducir el resto seguido: cada video que termina pasa al siguiente y, al final de la cola, Sintonia avisa y vuelve a Em Dia.'],
+        ['Insignia "Suscrito"', 'En <b>Ajustes</b>, activa la <b>insignia "Suscrito"</b>: un ✓ aparece junto al canal en los videos de Inicio, relacionados y búsqueda cuando ya estás suscrito. También puedes <b>atenuar</b> esos videos (nunca los oculta). Sintonia solo lee tu lista de suscripciones y la guarda en tu navegador.'],
         ['Desactiva Enhancer for YouTube', 'Si usas <b>Enhancer for YouTube</b>, desactívalo en <b>chrome://extensions</b>. Las dos pelean por la velocidad y el volumen.'],
         ['Pie', '<b>Buscar actualización</b>, <b>Reportar error</b>, el <b>?</b> para ver este tutorial otra vez y el idioma.'],
       ],
@@ -458,7 +475,7 @@
         },
         enh: '¿Usas <b>Enhancer for YouTube</b>? Desactívalo en la misma página de extensiones: las dos pelean por la velocidad y el volumen.',
         upd: ['Cuando sale una versión nueva, Sintonia muestra un aviso en YouTube con el botón <b>Actualizar</b>.', 'El zip nuevo va a Descargas. Extráelo sobre la misma carpeta (reemplazar todo).', 'En menos de 1 minuto Sintonia lo nota y se recarga sola, sin cerrar el video.'],
-        priv: 'Privacidad: nada de lo que ves sale del navegador. Sin cuenta, sin servidor propio, sin rastreo. Sintonia solo habla con api.github.com (versión nueva) y, si activas "Saltar partes", con sponsor.ajay.app (SponsorBlock), enviando solo los 4 primeros caracteres de un código del video, nunca el video.',
+        priv: 'Privacidad: nada de lo que ves sale del navegador. Sin cuenta, sin servidor propio, sin rastreo. Sintonia lee tu lista de suscripciones en YouTube (solo lectura, si activas la insignia "Suscrito") y la guarda solo en tu navegador. Además de YouTube, solo habla con api.github.com (versión nueva) y, si activas "Saltar partes", con sponsor.ajay.app (SponsorBlock), enviando solo los 4 primeros caracteres de un código del video, nunca el video.',
       },
     },
   };

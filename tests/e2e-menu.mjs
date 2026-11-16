@@ -46,7 +46,7 @@ await p.screenshot({ path: path.join(SHOT, 'menu-agora.png') });
 // 3) aba Ajustes: todas as seções, Geral aberta, cada chave com explicação
 await naUI('.abas [data-aba="ajustes"]');
 m = await until(async () => { const x = await pn(); return x && x.aba === 'Ajustes' ? x : null; });
-check('aba "Ajustes" mostra as 13 seções (com Perfil por canal e Comentários separados)', m && m.secoes.length === 13 && m.secoes.some((s) => s.id === 'canal') && m.secoes.some((s) => s.id === 'comentarios'), m && m.secoes.map((s) => s.id));
+check('aba "Ajustes" mostra as 14 seções (com Perfil por canal, Canais em que você é inscrito e Comentários separados)', m && m.secoes.length === 14 && m.secoes.some((s) => s.id === 'inscritos') && m.secoes.some((s) => s.id === 'canal') && m.secoes.some((s) => s.id === 'comentarios'), m && m.secoes.map((s) => s.id));
 check('seção Geral vem aberta, com explicação em cada linha', m && m.secoes[0].aberta && m.explic.length >= 3 && m.explic.some((t) => /parar tudo/.test(t)), m && m.explic);
 check('aviso "Tudo vem desligado de fábrica" no topo', m && /desligado de fábrica/.test(m.texto));
 await naUI('[data-sec="comentarios"]');
@@ -116,7 +116,7 @@ await p.click('#sintonia-btn'); let ag = await until(agora);
 check('tudo desligado: aba Agora sem chaves de recursos desligados (nem Filtros, nem Esconder)', ag && ag.chaves === 0 && !ag.blocos.includes('imagem') && !ag.blocos.includes('esconder'), ag);
 check('tudo desligado: diz para ligar na aba Ajustes', ag && /aba Ajustes/.test(ag.texto));
 await p.keyboard.press('Escape');
-await setSync({ perfilCanal: true, velocidade: true, filtros: true, screenshot: true, loopAB: true, popup: true, velPadrao: 1 }); // velPadrao volta a 1: o teste do limite (seção 3) deixou 16× e a extensão reaplica esse padrão, o que disputava com o 1× do 6b
+await setSync({ perfilCanal: true, velocidade: true, filtros: true, screenshot: true, loopAB: true, popup: true, velPadrao: 1 }); // velPadrao volta a 1: o teste do limite (seção 3) deixou 16× e a extensão reaplica esse padrão, o que disputava com o 1×
 await wait(800); await p.click('#sintonia-btn'); ag = await until(async () => { const x = await agora(); return x && x.grupos.length === 2 ? x : null; });
 check('com recursos ligados: grupos "Este vídeo" e "Este canal · perfil"', ag && ag.grupos[0] === 'Este vídeo' && ag.grupos[1] === 'Este canal · perfil', ag && ag.grupos);
 check('Este vídeo: velocidade, filtros e foto; Este canal: o perfil salvo', ag && ag.blocos.includes('vel') && ag.blocos.includes('imagem') && ag.blocos.includes('player2') && ag.blocos.includes('canal'), ag && ag.blocos);

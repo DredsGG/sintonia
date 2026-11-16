@@ -60,7 +60,7 @@
     if (m.type === 'main-ready') { mainOk = true; return; }
     if (m.type === 'video') { mainOk = true; mainInfo = m.data; setVideo(m.data, 'main'); return; }
     if (m.type === 'ad') { page.ad = !!(m.data && m.data.ad); emit('ad', page.ad); }
-    if (m.type === 'qual' || m.type === 'vol') emit(m.type, m.data);
+    if (m.type === 'qual' || m.type === 'vol' || m.type === 'inscritos') emit(m.type, m.data);
   };
   document.addEventListener('sintonia:e', onEvt);
 

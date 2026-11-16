@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sintonia",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "default_locale": "en",
   "description": "__MSG_appDesc__",
   "icons": {
@@ -53,6 +53,7 @@
         "src/ui.js",
         "src/emdia.js",
         "src/fila.js",
+        "src/inscritos.js",
         "src/atalhos.js",
         "src/player.js",
         "src/player2.js",

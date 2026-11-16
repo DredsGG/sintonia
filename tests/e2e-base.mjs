@@ -25,7 +25,7 @@ await p.waitForSelector('video', { state: 'attached' });
 // tutorial na instalação nova
 let e = await until(async () => { const s = await estado(p); return s.card ? s : null; });
 check('tutorial na instalação nova', e && e.card.title === 'Como usar a Sintonia', e && e.card);
-check('tutorial avisa para desligar o Enhancer', e && /Enhancer/.test(await p.evaluate(() => { const c = document.querySelector('sintonia-ui').shadowRoot.querySelector('.card'); for (let i = 0; i < 4; i++) c.querySelector('.go').click(); return c.textContent; })));
+check('tutorial avisa para desligar o Enhancer', e && /Enhancer/.test(await p.evaluate(() => { const c = document.querySelector('sintonia-ui').shadowRoot.querySelector('.card'); for (let i = 0; i < 5; i++) c.querySelector('.go').click(); return c.textContent; })));
 await p.screenshot({ path: path.join(SHOT, 'tutorial.png') });
 await p.keyboard.press('Escape'); await wait(300);
 check('tutorial fecha no Esc', !(await estado(p)).card);

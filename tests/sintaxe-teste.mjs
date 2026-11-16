@@ -17,5 +17,7 @@ check('mundo MAIN só com o main.js, em document_start', mf.content_scripts[0].w
 // rede: só os 2 hosts permitidos aparecem em fetch/URLs de API
 const todo = arquivos.map((f) => fs.readFileSync(f, 'utf8')).join('\n');
 const fetches = [...todo.matchAll(/fetch\(\s*[`'"]([^`'"]+)/g)].map((m) => m[1]);
-check('rede: fetch só para api.github.com, sponsor.ajay.app ou a própria extensão', fetches.every((u) => /^https:\/\/(api\.github\.com|sponsor\.ajay\.app)\//.test(u) || u.startsWith('${')), fetches);
+// v1.2.0: a leitura da lista de inscrições é um pedido ao PRÓPRIO youtube.com (/youtubei/v1/browse, só no main.js); nenhum outro caminho do site
+check('rede: fetch só para api.github.com, sponsor.ajay.app, a própria extensão ou a leitura da lista de inscrições no youtube.com (/youtubei/v1/browse)', fetches.every((u) => /^https:\/\/(api\.github\.com|sponsor\.ajay\.app)\//.test(u) || u.startsWith('${') || u.startsWith('/youtubei/v1/browse?')), fetches);
+check('os pedidos para o youtube.com são só de leitura (nenhum subscribe/unsubscribe no código)', !/youtubei\/v1\/subscription|subscribe\?|unsubscribe\?/.test(todo.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n')));
 fim();

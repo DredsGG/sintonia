@@ -192,6 +192,17 @@ await sw.evaluate(() => chrome.storage.sync.set({ h264: false, semHfr: false, sc
   await wait(3000);
   console.log('(Inscrições deslogadas: a Em Dia aberta =', await p.evaluate(() => !!document.querySelector('sintonia-emdia')), ')');
 }
+// v1.2.0: selo "Inscrito" sem login (perfil novo): o recurso fica quieto, sem selo, sem pedido de escrita e sem erro
+{
+  await sw.evaluate(() => chrome.storage.sync.set({ seloInscrito: true, esmaecerInscritos: true }));
+  const pedidos = []; p.on('request', (r) => { if (r.method() === 'POST' && /\/youtubei\//.test(r.url())) pedidos.push(r.url().replace(/\?.*/, '')); });
+  await p.goto('https://www.youtube.com/', { waitUntil: 'domcontentloaded' });
+  await p.waitForSelector('ytd-rich-item-renderer', { timeout: 30000 }).catch(() => {}); await wait(5000);
+  const q = await p.evaluate(() => ({ cards: document.querySelectorAll('ytd-rich-grid-renderer yt-lockup-view-model').length, selos: document.querySelectorAll('[data-sint-selo]').length, esm: document.querySelectorAll('[data-sint-esm]').length, logado: window.ytcfg && ytcfg.get('LOGGED_IN') }));
+  check('ao vivo sem login: selo ligado fica quieto (nenhum selo, nenhum esmaecido) com cards na tela', q.cards > 0 && q.selos === 0 && q.esm === 0 && !q.logado, q);
+  check('ao vivo sem login: nenhuma lista de inscrições foi lida nem guardada', !(await sw.evaluate(async () => (await chrome.storage.local.get('st.inscritos'))['st.inscritos'] ? 1 : 0)), pedidos.slice(0, 4));
+  await sw.evaluate(() => chrome.storage.sync.set({ seloInscrito: false, esmaecerInscritos: false }));
+}
 check('ao vivo: nenhum erro da Sintonia no console', erros.length === 0, erros.slice(0, 3));
 console.log('(observado: vídeo pausado ao abrir o painel =', paused, ')');
 await ctx.close();

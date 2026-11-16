@@ -10,6 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { inscricoesHtml, FEED } from './mock-inscricoes.mjs';
 import crypto from 'crypto';
+import { homeHtml, buscaHtml, relacionadosHtml, browse, TEXTO } from './mock-inscritos.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const VIDEO = fs.readFileSync(path.join(DIR, 'media', 'ep.webm'));
@@ -21,7 +22,7 @@ export const VIDEOS = {
   LIVEVIDEO04: { title: 'Ao vivo agora', author: 'Canal Dois', channelId: 'UCbbbbbbbbbbbbbbbbbbbbb2', handle: '@canaldois', live: true },
 };
 
-export function watchHtml(vid, q, lista) {
+export function watchHtml(vid, q, lista, st) {
   const theme = q.get('theme') || 'dark', api = q.get('api') || 'full';
   const DB0 = Object.assign({}, VIDEOS);
   for (const it of FEED) DB0[it.id] = { title: it.titulo, author: it.canal, channelId: 'UC' + it.canal.replace(/\W/g, '').padEnd(22, 'x').slice(0, 22), handle: '@' + it.canal.replace(/\W/g, '').toLowerCase() };
@@ -62,9 +63,9 @@ ytd-watch-metadata h1{font-size:20px;line-height:28px;font-weight:700;margin:12p
     <like-button-view-model><toggle-button-view-model><button-view-model><button id="b-like" aria-pressed="${q.get('liked') === '1'}" aria-label="marcar este vídeo como Gostei">Gostei</button></button-view-model></toggle-button-view-model></like-button-view-model>
     <dislike-button-view-model><toggle-button-view-model><button-view-model><button id="b-dis" aria-pressed="${q.get('disliked') === '1'}" aria-label="Não gostei deste vídeo">Não gostei</button></button-view-model></toggle-button-view-model></dislike-button-view-model>
   </segmented-like-dislike-button-view-model></div>
-  <div id="owner"><ytd-video-owner-renderer><a id="owner-a" href=""></a><div id="channel-name"><a id="owner-n" href=""></a></div></ytd-video-owner-renderer></div></ytd-watch-metadata><ytd-comments id="comments"><ytd-comments-header-renderer><h2>Comentários</h2><div id="sort-menu"><tp-yt-paper-listbox id="ordem"><a id="o-top" class="iron-selected" aria-selected="true">Principais</a><a id="o-rec" aria-selected="false">Mais recentes</a></tp-yt-paper-listbox></div></ytd-comments-header-renderer><p>Um comentário</p></ytd-comments></div>
+  <div id="owner"><ytd-video-owner-renderer><a id="owner-a" href=""></a><div id="channel-name"><a id="owner-n" href=""></a></div></ytd-video-owner-renderer>${q.get('subbtn') === '2' ? `<div id="subscribe-button"><ytd-subscribe-button-renderer${q.get('sub') === '1' ? ' subscribed' : ''}><button id="b-sub" aria-label="Inscreva-se" style="${q.get('sub') === '1' ? 'display:none' : ''}">Inscrever-se</button><button id="b-sub2" aria-label="Com a configuração atual, você recebe notificações" style="${q.get('sub') === '1' ? '' : 'display:none'}">Inscrito</button></ytd-subscribe-button-renderer></div>` : ''}${q.get('subbtn') === '1' ? `<div id="subscribe-button"><yt-subscribe-button-view-model><button id="b-sub" aria-label="${q.get('sub') === '1' ? 'Inscrito' : 'Inscrever-se'}">${q.get('sub') === '1' ? 'Inscrito' : 'Inscrever-se'}</button></yt-subscribe-button-view-model></div>` : ''}</div></ytd-watch-metadata><ytd-comments id="comments"><ytd-comments-header-renderer><h2>Comentários</h2><div id="sort-menu"><tp-yt-paper-listbox id="ordem"><a id="o-top" class="iron-selected" aria-selected="true">Principais</a><a id="o-rec" aria-selected="false">Mais recentes</a></tp-yt-paper-listbox></div></ytd-comments-header-renderer><p>Um comentário</p></ytd-comments></div>
 </div>
-<div id="secondary">${(DB0[vid] || {}).live ? '<ytd-live-chat-frame id="chat"><div>chat ao vivo</div></ytd-live-chat-frame>' : ''}<div id="related">${Object.keys(VIDEOS).map((k) => `<a href="/watch?v=${k}" class="rel" data-v="${k}">${VIDEOS[k].title}</a>`).join('')}<a href="/feed/subscriptions" class="rel" data-p="subs">Inscrições</a><a href="/" class="rel" data-p="home">Início</a></div></div>
+<div id="secondary">${st && st.inscCards && q.get('rel') === '1' ? relacionadosHtml(st.inscCards) : ''}${(DB0[vid] || {}).live ? '<ytd-live-chat-frame id="chat"><div>chat ao vivo</div></ytd-live-chat-frame>' : ''}<div id="related">${Object.keys(VIDEOS).map((k) => `<a href="/watch?v=${k}" class="rel" data-v="${k}">${VIDEOS[k].title}</a>`).join('')}<a href="/feed/subscriptions" class="rel" data-p="subs">Inscrições</a><a href="/" class="rel" data-p="home">Início</a></div></div>
 </div></ytd-watch-flexy></ytd-app>
 <script>
 (() => {
@@ -74,7 +75,13 @@ let cur = ${JSON.stringify(vid)}, rate = 1, vol = ${+(q.get('vol') || 100)}, mut
 const ouv = {}; const disparar = (n, d) => (ouv[n] || []).forEach((f) => { try { f(d); } catch (_) {} });
 window.__mock = { clicks: 0, toggles: 0, navs: [], setRate: [], setVol: [], setQ: [], likes: 0, likeCliques: 0, disCliques: 0, loginPopup: 0, autoplayFora: 0, cancelou: 0 };
 const LOGADO = ${q.get('login') === '1'};
-window.ytcfg = { get: (k) => (k === 'LOGGED_IN' ? LOGADO : undefined) }; // como no site real (medido 2026-11-11)
+window.ytcfg = { get: (k) => ({ LOGGED_IN: LOGADO, INNERTUBE_CONTEXT: { client: { clientName: 'WEB', clientVersion: '2.20261116.00.00' } }, INNERTUBE_CONTEXT_CLIENT_VERSION: '2.20261116.00.00' }[k]) }; // como no site real (medido 2026-11-11)
+const bsub = document.getElementById('b-sub'), bsub2 = document.getElementById('b-sub2');
+if (bsub2) { // variante do YouTube real: renderer com os dois botões e o atributo subscribed
+  const rend = document.querySelector('ytd-subscribe-button-renderer');
+  for (const b of [bsub, bsub2]) b.addEventListener('click', () => { const on = !rend.hasAttribute('subscribed'); const d = DB[cur] || {}; fetch('/youtubei/v1/subscription/' + (on ? 'subscribe' : 'unsubscribe'), { method: 'POST', headers: { 'x-mock-pagina': '1' }, body: JSON.stringify({ uc: d.channelId, h: d.handle, on }) }); setTimeout(() => { rend.toggleAttribute('subscribed', on); bsub.style.display = on ? 'none' : ''; bsub2.style.display = on ? '' : 'none'; }, 150); });
+}
+else if (bsub) bsub.addEventListener('click', () => { const on = bsub.textContent !== 'Inscrito'; const d = DB[cur] || {}; fetch('/youtubei/v1/subscription/' + (on ? 'subscribe' : 'unsubscribe'), { method: 'POST', headers: { 'x-mock-pagina': '1' }, body: JSON.stringify({ uc: d.channelId, h: d.handle, on }) }); setTimeout(() => { bsub.textContent = on ? 'Inscrito' : 'Inscrever-se'; bsub.setAttribute('aria-label', bsub.textContent); }, 150); });
 const bl = document.getElementById('b-like'), bd = document.getElementById('b-dis');
 window.__mock.ordemCliques = 0;
 for (const a of document.querySelectorAll('#ordem a')) a.addEventListener('click', () => { window.__mock.ordemCliques++; for (const b of document.querySelectorAll('#ordem a')) { b.classList.toggle('iron-selected', b === a); b.setAttribute('aria-selected', String(b === a)); } });
@@ -188,7 +195,7 @@ export const simpleHtml = (title) => `<!doctype html><html lang="pt-BR" dark><he
 
 // gh: { status: 404 } | { tag: 'v0.2.0', name, body, urgente }
 export async function rotas(ctx, opts = {}) {
-  const st = { gh: opts.gh || { status: 404 }, ghCalls: 0, issues: [], extra: opts.extra || null, listas: {}, wv: opts.wv !== false, watchVideos: [], feedback: 0 };
+  const st = { gh: opts.gh || { status: 404 }, ghCalls: 0, issues: [], extra: opts.extra || null, listas: {}, wv: opts.wv !== false, watchVideos: [], feedback: 0, inscCards: null, insc: { n: 0, porPagina: 100, off: new Set(), extra: [] }, inscPedidos: [], postsDaSintonia: [], escritasDaPagina: [] };
   await ctx.route('https://www.youtube.com/**', async (r) => {
     const u = new URL(r.request().url());
     if (u.pathname.startsWith('/media/')) { // com Range (206), senão o vídeo não deixa pular para o fim
@@ -200,7 +207,21 @@ export async function rotas(ctx, opts = {}) {
     if (st.extra) { const res = await st.extra(u, r); if (res) return; }
     if (u.pathname.startsWith('/shorts/')) return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: shortsHtml(u.pathname.split('/')[2], u.searchParams) });
     if (u.pathname === '/feed/subscriptions') return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: inscricoesHtml(u.searchParams) });
+    if (r.request().method() === 'POST' && u.pathname.startsWith('/youtubei/')) { // tudo que a Sintonia escreve na rede aparece aqui: só pode ser leitura (browse)
+      const h = r.request().headers();
+      if (!h['x-mock-pagina']) st.postsDaSintonia.push(u.pathname);
+    }
+    if (u.pathname === '/youtubei/v1/browse') { let c = {}; try { c = JSON.parse(r.request().postData() || '{}'); } catch (_) {} return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(browse(st, r.request(), c)) }); }
+    if (/^\/youtubei\/v1\/subscription\/(subscribe|unsubscribe)/.test(u.pathname)) { // o clique da PESSOA no botão (a página faz o pedido)
+      let c = {}; try { c = JSON.parse(r.request().postData() || '{}'); } catch (_) {}
+      st.escritasDaPagina.push(u.pathname.split('/').pop());
+      st.insc.extra = st.insc.extra.filter((x) => x.uc !== c.uc);
+      if (c.on) st.insc.extra.push({ uc: c.uc, h: c.h });
+      return r.fulfill({ status: 200, body: '{}' });
+    }
     if (/^\/youtubei\/v1\/(feedback|like|subscription)/.test(u.pathname)) { st.feedback++; return r.fulfill({ status: 200, body: '{}' }); }
+    if (st.inscCards && u.pathname === '/') return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: homeHtml(st.inscCards, u.searchParams) });
+    if (st.inscCards && u.pathname === '/results') return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: buscaHtml(st.inscCards, u.searchParams) });
     if (u.pathname === '/watch_videos') { // playlist temporária: até 50 IDs (medido); st.wv=false simula a playlist não vindo (plano B)
       const ids = (u.searchParams.get('video_ids') || '').split(',').filter(Boolean).slice(0, 50);
       st.watchVideos.push(ids);
@@ -210,7 +231,7 @@ export async function rotas(ctx, opts = {}) {
       const destino = st.wv ? `/watch?v=${ids[0]}&list=${lid}` : `/watch?v=${ids[0]}`;
       return r.fulfill({ status: 200, contentType: 'text/html', body: `<!doctype html><script>location.replace(${JSON.stringify(destino)})</script>` });
     }
-    if (u.pathname === '/watch') { const l = u.searchParams.get('list'); return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: watchHtml(u.searchParams.get('v') || 'AAAAAAAAAA1', u.searchParams, l && st.listas[l]) }); }
+    if (u.pathname === '/watch') { const l = u.searchParams.get('list'); return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: watchHtml(u.searchParams.get('v') || 'AAAAAAAAAA1', u.searchParams, l && st.listas[l], st) }); }
     return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: simpleHtml(u.pathname) });
   });
   await ctx.route('https://api.github.com/**', (r) => {

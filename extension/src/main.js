@@ -2,7 +2,8 @@
 // Conversa com o content script (mundo isolado) por eventos no document, com JSON em texto:
 //   pedido:   'sintonia:c'  { id, op, args }
 //   resposta: 'sintonia:e'  { id, type: 'res', data }   ·   aviso: { type: 'video' | 'ad', data }
-// Nada aqui guarda, lê de storage ou fala com a rede. Mapa da API em Jarvis/02-projetos/extensoes/telao/sintonia-engenharia-reversa.md
+// Nada aqui guarda nem lê storage. A única conversa com a rede é a leitura da lista de inscrições (v1.2.0, listarInscricoes): um pedido de
+// leitura ao próprio youtube.com, o mesmo que a página Canais faz. Nada vai para outro servidor. Mapa da API em Jarvis/02-projetos/extensoes/telao/sintonia-engenharia-reversa.md
 (() => {
   'use strict';
   // ───────────── fase 7: codec (antes de tudo, em document_start) ─────────────
@@ -203,6 +204,19 @@
     },
     // estado do player (0 = acabou): pega o fim que o evento 'ended' não avisou (ex.: depois de anúncio no fim)
     estadoPlayer: () => { const p = mp(); return { state: p ? safe(() => p.getPlayerState(), null) : null, loop: p ? safe(() => p.getLoopVideo(), null) : null }; },
+    // v1.2.0 · selo "Inscrito": lista de inscrições, SÓ LEITURA. Pede ao próprio youtube.com (POST /youtubei/v1/browse, FEchannels + continuações,
+    // o mesmo pedido da página Canais) com a autorização que o site usa. Medido ao vivo em 2026-11-16: 226 canais em 3 páginas, 0,7 s.
+    // Nunca chama subscribe/unsubscribe nem nada que escreva na conta. Responde na hora; o resultado vem no aviso 'inscritos'.
+    listarInscricoes: () => {
+      if (listando) return { ok: true, jaIndo: true };
+      const cfg = window.ytcfg;
+      if (!cfg || typeof cfg.get !== 'function' || !cfg.get('LOGGED_IN')) return { ok: false, motivo: 'deslogado' };
+      listando = true;
+      lerInscricoes().then((r) => { listando = false; emit('inscritos', r); }, () => { listando = false; emit('inscritos', { ok: false, motivo: 'erro' }); });
+      return { ok: true };
+    },
+    // v1.2.0: lê, no card, a qual canal ele pertence (a página guarda isso em JS, não no DOM) e anota em data-sint-ch / data-sint-h / data-sint-vid
+    canaisCards: () => marcarCards(),
     // fila (fase 1): vai para o vídeo `id` dentro da playlist nativa (temporária) que está tocando
     filaProximo: (id) => {
       const p = mp(); if (!p) return { ok: false };
@@ -213,6 +227,62 @@
       return { ok: true };
     },
   };
+  // ───────────── v1.2.0 · selo "Inscrito" ─────────────
+  let listando = false;
+  async function lerInscricoes() {
+    const cfg = window.ytcfg;
+    const ctx = cfg.get('INNERTUBE_CONTEXT'), ver = cfg.get('INNERTUBE_CONTEXT_CLIENT_VERSION');
+    const ck = {}; for (const c of document.cookie.split('; ')) { const i = c.indexOf('='); if (i > 0) ck[c.slice(0, i)] = c.slice(i + 1); }
+    const sap = ck.SAPISID || ck['__Secure-3PAPISID'];
+    if (!ctx || !sap) return { ok: false, motivo: 'sem-sessao' };
+    const org = location.origin;
+    const post = async (corpo) => {
+      const ts = Math.floor(Date.now() / 1000);
+      const h = [...new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(`${ts} ${sap} ${org}`)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+      const r = await fetch('/youtubei/v1/browse?prettyPrint=false', { method: 'POST', credentials: 'include',
+        headers: { 'content-type': 'application/json', 'x-youtube-client-name': '1', 'x-youtube-client-version': ver, 'x-origin': org, authorization: `SAPISIDHASH ${ts}_${h}`, 'x-goog-authuser': '0' },
+        body: JSON.stringify(Object.assign({ context: ctx }, corpo)) });
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.text();
+    };
+    const ids = new Set(), hs = new Set(); let tok = null, pags = 0;
+    const colher = (t) => {
+      for (const m of t.matchAll(/"browseId":"(UC[\w-]{22})"/g)) ids.add(m[1]);
+      for (const m of t.matchAll(/"canonicalBaseUrl":"\/(@[^"]+)"/g)) { try { hs.add(decodeURIComponent(m[1]).toLowerCase()); } catch (_) {} }
+      const k = t.match(/"continuationCommand":\{"token":"([^"]+)"/); return k ? k[1] : null;
+    };
+    tok = colher(await post({ browseId: 'FEchannels' })); pags = 1;
+    while (tok && pags < 40 && ids.size < 5000) { tok = colher(await post({ continuation: tok })); pags++; }
+    if (!ids.size) return { ok: false, motivo: 'vazio' };
+    return { ok: true, ids: [...ids], handles: [...hs], paginas: pags };
+  }
+  const cacheCard = new WeakMap();
+  const donoDe = (e) => {
+    let d; try { d = e.rawProps && typeof e.rawProps.data === 'function' ? e.rawProps.data() : (e.data || (e.__data && e.__data.data)); } catch (_) { d = null; }
+    const uc = new Set(), h = new Set(), vis = new WeakSet();
+    (function w(o, dep) {
+      if (!o || typeof o !== 'object' || dep > 14 || vis.has(o)) return; vis.add(o);
+      for (const k of Object.keys(o)) { const v = o[k]; if (typeof v === 'string') { if (/^UC[\w-]{22}$/.test(v)) uc.add(v); const m = v.match(/^\/?(@[\w.%-]+)$/); if (m) { try { h.add(decodeURIComponent(m[1]).toLowerCase()); } catch (_) {} } } else w(v, dep + 1); }
+    })(d, 0);
+    return { uc: [...uc].slice(0, 6), h: [...h].slice(0, 6) };
+  };
+  function marcarCards() {
+    const p = location.pathname;
+    const sel = p === '/' ? 'ytd-rich-grid-renderer yt-lockup-view-model, ytd-rich-grid-renderer ytd-rich-grid-media'
+      : p === '/watch' ? 'ytd-watch-next-secondary-results-renderer yt-lockup-view-model, ytd-watch-next-secondary-results-renderer ytd-compact-video-renderer'
+      : p === '/results' ? 'ytd-search ytd-video-renderer, ytd-search yt-lockup-view-model' : '';
+    if (!sel) return { n: 0 };
+    let n = 0;
+    for (const e of document.querySelectorAll(sel)) {
+      const a = e.querySelector('a[href*="/watch?v="]'); if (!a) continue;
+      const m = (a.getAttribute('href') || '').match(/[?&]v=([\w-]{11})/); const vid = m ? m[1] : '';
+      let c = cacheCard.get(e);
+      if (!c || c.vid !== vid) { c = Object.assign({ vid }, donoDe(e)); cacheCard.set(e, c); } // card reaproveitado com outro vídeo: lê de novo
+      e.setAttribute('data-sint-vid', vid); e.setAttribute('data-sint-ch', c.uc.join(' ')); e.setAttribute('data-sint-h', c.h.join(' '));
+      n++;
+    }
+    return { n };
+  }
   const onCmd = (e) => {
     let m; try { m = JSON.parse(e.detail); } catch (_) { return; }
     if (!m || typeof m.op !== 'string' || !Object.prototype.hasOwnProperty.call(OPS, m.op)) return;

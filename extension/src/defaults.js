@@ -24,6 +24,8 @@
     filtros: false, tema: '', screenshot: false, semHfr: false, h264: false,
     // extras pedidos pelo André (2026-11-11)
     comentOrdem: '', botaoFlutuante: true,
+    // v1.2.0 · selo "Inscrito" nos cards (início, relacionados e busca) e esmaecer inscritos (só vale com o selo ligado)
+    seloInscrito: false, esmaecerInscritos: false,
   };
   // Seções da página de Ajustes, na ordem. type: switch | select | number | range | list.
   // Os textos vêm do i18n: set.<k> (título) e set.<k>_ (linha de baixo). sec.<id> é o título da seção.
@@ -39,6 +41,7 @@
     { id: 'controles', items: [{ k: 'rodaVolume', type: 'switch' }, { k: 'volPasso', type: 'number', min: 1, max: 20, step: 1 }, { k: 'rodaVelocidade', type: 'switch' },
       { k: 'velPasso', type: 'number', min: 0.01, max: 1, step: 0.01 }, { k: 'atalhos', type: 'switch' }, { k: 'atalhoMap', type: 'extra' }] },
     { id: 'tela', items: [{ k: 'teatroAuto', type: 'switch' }, { k: 'cinema', type: 'switch' }] },
+    { id: 'inscritos', items: [{ k: 'seloInscrito', type: 'switch' }, { k: 'esmaecerInscritos', type: 'switch' }] },
     { id: 'comentarios', items: [{ k: 'comentOrdem', type: 'select', opts: ['', 'recentes', 'principais'] }, { k: 'escComentarios', type: 'switch' }] },
     { id: 'audio', items: [{ k: 'reforco', type: 'switch' }, { k: 'reforcoPadrao', type: 'number', min: 100, max: 400, step: 5, canal: true }, { k: 'igualar', type: 'switch' }] },
     { id: 'player', items: [{ k: 'loopAB', type: 'switch' }, { k: 'miniPlayer', type: 'switch' }, { k: 'popup', type: 'switch' }, { k: 'playlistReversa', type: 'switch' },
@@ -68,6 +71,7 @@
     sbOficial: 'st.sb.oficial', // já avisou que o SponsorBlock oficial está ativo
     reverso: 'st.reverso', // playlists tocando ao contrário: { listId: data }
     mini: 'st.mini', // posição e tamanho do mini player: { w, h, right, bottom }
+    inscritos: 'st.inscritos', // lista de inscrições (só leitura): { ids: [UC…], handles: [@…], em: data }
     like: 'st.like', // like automático: { canais: {id: nome}, nunca: {id: nome}, feitos: {videoId: data} } (feitos apagados depois de 30 dias)
   };
   globalThis.SINT_DEF = { SYNC, SECTIONS, LOCAL };
