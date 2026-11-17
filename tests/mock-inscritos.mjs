@@ -85,6 +85,7 @@ export function browse(st, req, corpo) {
   const aut = req.headers().authorization || '';
   st.inscPedidos.push({ aut: /^SAPISIDHASH \d+_[0-9a-f]{40}$/.test(aut), cont: !!corpo.continuation, browseId: corpo.browseId || null });
   if (!/^SAPISIDHASH /.test(aut)) return { responseContext: {}, trackedParams: 'x' };
+  if (st.insc.modo === 'vazio') return { responseContext: {}, contents: [] };
   const todos = [];
   for (let i = 0; i < st.insc.n; i++) if (!st.insc.off.has(i)) todos.push({ uc: ucDe(i), h: handleDe(i) });
   for (const x of st.insc.extra) todos.push(x);

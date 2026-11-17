@@ -211,7 +211,7 @@ export async function rotas(ctx, opts = {}) {
       const h = r.request().headers();
       if (!h['x-mock-pagina']) st.postsDaSintonia.push(u.pathname);
     }
-    if (u.pathname === '/youtubei/v1/browse') { let c = {}; try { c = JSON.parse(r.request().postData() || '{}'); } catch (_) {} return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(browse(st, r.request(), c)) }); }
+    if (u.pathname === '/youtubei/v1/browse') { if (st.insc.atrasoMs) await new Promise((ok) => setTimeout(ok, st.insc.atrasoMs)); if (st.insc.modo === 'erro') return r.fulfill({ status: 500, body: '{}' }); let c = {}; try { c = JSON.parse(r.request().postData() || '{}'); } catch (_) {} return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(browse(st, r.request(), c)) }); }
     if (/^\/youtubei\/v1\/subscription\/(subscribe|unsubscribe)/.test(u.pathname)) { // o clique da PESSOA no botão (a página faz o pedido)
       let c = {}; try { c = JSON.parse(r.request().postData() || '{}'); } catch (_) {}
       st.escritasDaPagina.push(u.pathname.split('/').pop());

@@ -212,7 +212,7 @@
       const cfg = window.ytcfg;
       if (!cfg || typeof cfg.get !== 'function' || !cfg.get('LOGGED_IN')) return { ok: false, motivo: 'deslogado' };
       listando = true;
-      lerInscricoes().then((r) => { listando = false; emit('inscritos', r); }, () => { listando = false; emit('inscritos', { ok: false, motivo: 'erro' }); });
+      lerInscricoes().then((r) => { listando = false; emit('inscritos', r); }, (e) => { listando = false; emit('inscritos', { ok: false, motivo: 'erro', detalhe: String((e && e.message) || e).slice(0, 60) }); });
       return { ok: true };
     },
     // v1.2.0: lê, no card, a qual canal ele pertence (a página guarda isso em JS, não no DOM) e anota em data-sint-ch / data-sint-h / data-sint-vid

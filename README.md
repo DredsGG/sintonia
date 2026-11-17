@@ -8,7 +8,7 @@
 Speed, quality, volume and more, saved per channel, plus **Em Dia**: a queue for your Subscriptions page. Free, no account, no server.
 
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.2.0-3ea6ff)
+![Version](https://img.shields.io/badge/version-1.2.1-3ea6ff)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Works on:** Chrome · Edge · Brave · Opera GX (desktop, youtube.com)
@@ -27,7 +27,7 @@ Everything ships **turned off**. Switch on only what you want; there is one swit
 - **Speed, quality and volume.** From 0.07× to 16×, and it never falls back to 1× by itself (not after an ad, not on the next video). Best quality up to a limit you set, 100% volume and unmuted on open, mouse wheel on the video for volume, Shift + wheel for speed, keyboard shortcuts (all with Alt, so they never clash with YouTube's), automatic theater mode and a cinema mode that dims the page around the player.
 - **Em Dia (a queue for Subscriptions).** A button on the Subscriptions page opens a clean grid with the videos from **today, 3 or 7 days**, oldest first. Mark what you don't want to watch (**Not for me**; it is kept only in your browser, and the channel is *not* blocked), **Select** several at once, and press **Start watching** to play the rest in order with YouTube's own playlist (with a queue of its own as a fallback). Leave in the middle and *Continue (3/12)* picks it up again. Shorts, live streams, premieres and scheduled videos are left out unless you ask for them.
 - **Auto like** *(off by default, and the one feature that **acts on your YouTube account**)*. Presses YouTube's own Like button for you: after part of the video is watched, on open, or only on channels you mark. It never touches a video that already has a like or a dislike, never removes a like, and skips ads and live streams.
-- **"Subscribed" badge (off by default).** A small ✓ next to the channel name on videos in **Home, related and search** when you already subscribe to that channel, and an option to **fade** those videos (they return to normal on hover; nothing is ever hidden). It reads your subscription list from YouTube (read-only) and keeps it only in your browser.
+- **"Subscribed" badge (off by default).** A small green **✓ Subscribed** tag next to the channel name on videos in **Home, related and search** when you already subscribe to that channel, and an option to **fade** those videos (they return to normal on hover; nothing is ever hidden). It reads your subscription list from YouTube (read-only) and keeps it only in your browser.
 - **Hide distractions.** Comments, live chat, related videos, Shorts (everywhere), the end screen and cards, and a *Home goes to Subscriptions* option.
 - **Audio.** Volume boost up to 400% for quiet videos, and an *even volume* option that brings quiet and loud videos closer.
 - **Skip segments (SponsorBlock data).** Sponsors, self-promotion and subscribe reminders by default, plus the other SponsorBlock categories if you want them. **Read-only:** Sintonia never submits anything to SponsorBlock. A notice with **Undo** and colored marks on the progress bar.

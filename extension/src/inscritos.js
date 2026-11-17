@@ -1,4 +1,4 @@
-// Sintonia — selo "Inscrito" (v1.2.0): marca nos cards de vídeo os canais em que a pessoa é inscrita e, se quiser, esmaece esses cards.
+// Sintonia — selo "Inscrito" (v1.2.0; v1.2.1: pílula "✓ Inscrito" com a palavra, legível de longe): marca nos cards de vídeo os canais em que a pessoa é inscrita e, se quiser, esmaece esses cards.
 // Páginas: início, relacionados (coluna ao lado do vídeo) e busca. Nunca nas Inscrições, na página do canal, em playlists ou Shorts.
 // Fonte da lista (medida ao vivo em 2026-11-16, ver sintonia-engenharia-reversa.md): leitura ao próprio youtube.com, no mundo MAIN
 // (main.js · listarInscricoes), a mesma da página Canais. SÓ LEITURA: nada que escreva na conta. Guardada só em storage.local:
@@ -17,6 +17,7 @@
   let estado = 'parado'; // 'parado' | 'carregando' | 'ok' | 'deslogado' | 'erro'
   let proxima = 0; // não tenta de novo antes disso (erro / deslogado)
   let logado = true, ultimoLogin = 0;
+  let motivo = '', detalhe = ''; // por que a leitura da lista não deu certo (mostrado no painel)
 
   const pagina = () => { const p = location.pathname; return p === '/' ? 'home' : p === '/watch' ? 'watch' : p === '/results' ? 'search' : ''; };
   const ligado = () => SINT.ativo() && !!S.seloInscrito && !!pagina();
@@ -37,18 +38,18 @@
     if (!forcar && (Date.now() < proxima || (lista && Date.now() - lista.em < DIA))) return;
     estado = 'carregando'; redesenharPainel();
     const r = await SINT.bridge('listarInscricoes');
-    if (!r || !r.ok) { estado = r && r.motivo === 'deslogado' ? 'deslogado' : 'erro'; proxima = Date.now() + (estado === 'deslogado' ? 5 * 60e3 : 30 * 60e3); redesenharPainel(); return; }
+    if (!r || !r.ok) { estado = r && r.motivo === 'deslogado' ? 'deslogado' : 'erro'; motivo = (r && r.motivo) || 'sem-resposta'; detalhe = ''; proxima = Date.now() + (estado === 'deslogado' ? 5 * 60e3 : 30 * 60e3); redesenharPainel(); return; }
     const dados = await new Promise((ok) => { const off = SINT.on('inscritos', (d) => { off(); clearTimeout(t); ok(d); }); const t = setTimeout(() => { off(); ok(null); }, 40000); });
-    if (!dados || !dados.ok) { estado = dados && dados.motivo === 'sem-sessao' ? 'deslogado' : 'erro'; proxima = Date.now() + 30 * 60e3; SINT.log('inscritos-erro', true); redesenharPainel(); return; }
+    if (!dados || !dados.ok) { estado = dados && dados.motivo === 'sem-sessao' ? 'deslogado' : 'erro'; motivo = dados ? dados.motivo || 'erro' : 'demora'; detalhe = (dados && dados.detalhe) || ''; proxima = Date.now() + 30 * 60e3; SINT.log('inscritos-erro', true); redesenharPainel(); return; }
     lista = doDados({ ids: dados.ids, handles: dados.handles, em: Date.now() });
-    estado = 'ok';
+    estado = 'ok'; motivo = ''; detalhe = '';
     try { await ext.storage.local.set({ [K]: paraDados() }); } catch (_) {}
     SINT.log('inscritos-ok');
     redesenharPainel(); agendar(0);
   }
 
   // ───────────────────────── selo e esmaecido nos cards ─────────────────────────
-  const ICO = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false" style="display:block"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M7.2 12.4l3.2 3.2 6.4-6.8" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--yt-spec-base-background,#0f0f0f)"/></svg>';
+  const ICO = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 12.8l5 5L19.5 7" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   // onde o selo entra: logo depois do nome do canal (e do selo de verificado, se houver)
   const visivel = (e) => e.getClientRects().length > 0; // o card da busca tem um nome de canal escondido (layout compacto) além do que aparece
   const primeiroVisivel = (card, sel) => [...card.querySelectorAll(sel)].find(visivel) || null;
@@ -62,14 +63,17 @@
     const linha = n.closest('span[role="text"]') || n; // o link fica dentro do span do nome; o selo de verificado é irmão desse span
     const nx = linha.nextElementSibling;
     if (nx && !nx.hasAttribute('data-sint-selo') && !nx.textContent.trim() && nx.querySelector('svg')) return nx; // depois do selo de verificado
-    return n;
+    return linha; // fora do span do nome (ele corta nomes longos com reticências e cortaria o selo junto)
   }
   function pintarEstilo(on) {
     let st = document.getElementById(CSS_ID);
     if (!on) { if (st) st.remove(); return; }
     if (!st) { st = document.createElement('style'); st.id = CSS_ID; (document.head || document.documentElement).appendChild(st); }
+    // pílula "✓ Inscrito": verde (não se confunde com o vermelho do YouTube nem com o cinza do selo de verificado), texto em negrito 11 px
     st.textContent = '[data-sint-esm] { opacity: .45; transition: opacity .15s; } [data-sint-esm]:hover, [data-sint-esm]:focus-within { opacity: 1; }'
-      + ' .sint-selo { display: inline-flex; vertical-align: middle; margin-left: 4px; color: var(--yt-spec-text-secondary, #aaa); opacity: .85; flex: none; }';
+      + ' .sint-selo { display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; margin-left: 6px; padding: 0 7px 0 5px; height: 16px; box-sizing: border-box; border-radius: 8px; font: 700 11px/16px Roboto, Arial, sans-serif; letter-spacing: .1px; white-space: nowrap; flex: none; color: #0a6b38; background: rgba(0, 150, 70, .14); }'
+      + ' html[dark] .sint-selo { color: #6ee7a0; background: rgba(46, 204, 113, .22); }'
+      + ' .sint-selo svg { width: 10px; height: 10px; display: block; flex: none; }';
   }
   function limpar() {
     for (const b of document.querySelectorAll('[data-sint-selo]')) b.remove();
@@ -88,8 +92,8 @@
       if (!alvo) faltou = true; // ainda sem layout: tenta de novo daqui a pouco
       if (alvo) {
         const T = L(), b = document.createElement('span');
-        b.className = 'sint-selo'; b.setAttribute('data-sint-selo', chave); b.title = T.seloDica; b.setAttribute('aria-label', T.selo); b.setAttribute('role', 'img');
-        b.innerHTML = ICO;
+        b.className = 'sint-selo'; b.setAttribute('data-sint-selo', chave); b.title = T.seloDica;
+        b.innerHTML = ICO + '<span>' + esc(T.selo) + '</span>';
         alvo.insertAdjacentElement('afterend', b);
       }
     }
@@ -162,8 +166,8 @@
   SINT.addBloco({
     id: 'inscritos', ordem: 30,
     html(T) {
-      if (!ligado()) return '';
-      const msg = estado === 'carregando' ? T.inscCarregando : estado === 'deslogado' ? T.inscSemLogin : estado === 'erro' ? T.inscErro : lista ? T.inscN(lista.ids.size, lista.em) : T.inscCarregando;
+      if (!SINT.ativo() || !S.seloInscrito) return '';
+      const msg = estado === 'carregando' ? T.inscCarregando : estado === 'deslogado' ? T.inscSemLogin : estado === 'erro' ? T.inscMotivo(motivo, detalhe) : lista ? T.inscN(lista.ids.size, lista.em) : T.inscCarregando;
       return `<h4>${esc(T.inscTit)}</h4><p class="hint" role="status">${esc(msg)}</p><button type="button" class="more" data-insc="atualizar"${estado === 'carregando' ? ' disabled' : ''}><span>${esc(T.inscAtualizar)}</span></button>`;
     },
     wire(el) { const b = el.querySelector('[data-insc="atualizar"]'); if (b) b.addEventListener('click', () => atualizar(true)); },

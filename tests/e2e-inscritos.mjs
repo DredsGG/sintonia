@@ -50,9 +50,12 @@ check('lista lida do YouTube em 3 páginas (1 pedido + 2 continuações), todas 
 const L1 = await lista();
 check('guardada só em st.inscritos {ids, handles, em}: 251 canais', L1 && L1.ids.length === 251 && L1.handles.length === 251 && L1.em > 0, L1 && { ids: L1.ids.length, hs: L1.handles.length });
 check('a Sintonia só LEU: nenhum pedido de escrita na rede além do browse', st.postsDaSintonia.every((x) => x === '/youtubei/v1/browse') && st.escritasDaPagina.length === 0, st.postsDaSintonia);
-const geo = await p.evaluate(() => { const c = document.querySelectorAll('yt-lockup-view-model')[0]; const b = c.querySelector('[data-sint-selo]'), img = c.querySelector('img'), a = c.querySelector('yt-content-metadata-view-model a'); const rb = b.getBoundingClientRect(), ri = img.getBoundingClientRect(), ra = a.getBoundingClientRect(); return { dentroDaMiniatura: rb.left < ri.right && rb.right > ri.left && rb.top < ri.bottom && rb.bottom > ri.top, depoisDoNome: a.nextElementSibling === b && rb.left >= ra.right - 1, mesmaLinha: Math.abs((rb.top + rb.bottom) / 2 - (ra.top + ra.bottom) / 2) < 12, w: rb.width, titulo: b.title, aria: b.getAttribute('aria-label') }; });
-check('selo ao lado do nome do canal, na mesma linha, sem cobrir a miniatura', geo.depoisDoNome && geo.mesmaLinha && !geo.dentroDaMiniatura && geo.w <= 16, geo);
-check('selo em PT: "Inscrito" e dica ao passar o mouse', geo.aria === 'Inscrito' && geo.titulo === 'Você é inscrito neste canal', geo);
+const geo = await p.evaluate(() => { const c = document.querySelectorAll('yt-lockup-view-model')[0]; const b = c.querySelector('[data-sint-selo]'), img = c.querySelector('img'), a = c.querySelector('yt-content-metadata-view-model a'); const rb = b.getBoundingClientRect(), ri = img.getBoundingClientRect(), ra = a.getBoundingClientRect(); const cs = getComputedStyle(b); const h3 = c.querySelector('h3').getBoundingClientRect().top; const alt = c.getBoundingClientRect().height; b.style.display = 'none'; const alt2 = c.getBoundingClientRect().height, h32 = c.querySelector('h3').getBoundingClientRect().top; b.style.display = '';
+  return { dentroDaMiniatura: rb.left < ri.right && rb.right > ri.left && rb.top < ri.bottom && rb.bottom > ri.top, depoisDoNome: rb.left >= ra.right - 1, mesmaLinha: Math.abs((rb.top + rb.bottom) / 2 - (ra.top + ra.bottom) / 2) < 12, w: Math.round(rb.width), h: Math.round(rb.height), texto: b.textContent.trim(), titulo: b.title, peso: cs.fontWeight, fonte: cs.fontSize, fundo: cs.backgroundColor, semAltura: alt === alt2 && h3 === h32 }; });
+check('selo é uma pílula "✓ Inscrito" (texto, negrito 11 px, fundo colorido) ao lado do nome, na mesma linha, sem cobrir a miniatura', geo.depoisDoNome && geo.mesmaLinha && !geo.dentroDaMiniatura && geo.h >= 14 && geo.h <= 18 && geo.w >= 40 && geo.w <= 110 && +geo.peso >= 700 && geo.fonte === '11px' && geo.fundo !== 'rgba(0, 0, 0, 0)', geo);
+check('a pílula não muda a altura do card nem empurra o título', geo.semAltura, geo);
+check('selo em PT: texto "Inscrito" (a palavra aparece) e dica ao passar o mouse', geo.texto === 'Inscrito' && geo.titulo === 'Você é inscrito neste canal', geo);
+check('não é igual ao selo de verificado (que não tem palavra nem fundo)', await p.evaluate(() => { const c = document.querySelectorAll('yt-lockup-view-model')[6]; const v = c.querySelector('yt-content-metadata-view-model [role=group] > span:not([role=text])'); const b = c.querySelector('[data-sint-selo]'); return !!v && v.textContent.trim() === '' && b.textContent.trim().length > 3 && getComputedStyle(b).backgroundColor !== getComputedStyle(v).backgroundColor; }));
 check('canal verificado: o selo vem depois do selo de verificado', await p.evaluate(() => { const c = document.querySelectorAll('yt-lockup-view-model')[6]; const b = c.querySelector('[data-sint-selo]'); return !!b.previousElementSibling && !!b.previousElementSibling.querySelector('svg') && !b.previousElementSibling.hasAttribute('data-sint-selo'); }));
 await p.screenshot({ path: path.join(SHOT, 'inscritos-home.png') });
 
@@ -164,8 +167,8 @@ await p.keyboard.press('Escape');
 // ───────────────────────── 11) idiomas ─────────────────────────
 for (const [lang, aria, dica] of [['en', 'Subscribed', 'You are subscribed to this channel'], ['es', 'Suscrito', 'Estás suscrito a este canal']]) {
   await setSync({ lang }); await wait(1500);
-  const b = await p.evaluate(() => { const e = document.querySelector('[data-sint-selo]'); return e && { aria: e.getAttribute('aria-label'), t: e.title }; });
-  check(`${lang.toUpperCase()}: selo "${aria}" e dica traduzida`, b && b.aria === aria && b.t === dica, b);
+  const b = await p.evaluate(() => { const e = document.querySelector('[data-sint-selo]'); return e && { aria: e.textContent.trim(), t: e.title }; });
+  check(`${lang.toUpperCase()}: pílula "✓ ${aria}" e dica traduzida`, b && b.aria === aria && b.t === dica, b);
 }
 await setSync({ lang: '' });
 
@@ -179,6 +182,31 @@ check('lista grande: 2.000 canais lidos em 20 páginas e guardados', !!grande &&
 const ti = await p.evaluate(async () => { const t = performance.now(); for (let i = 0; i < 50; i++) document.querySelectorAll('yt-lockup-view-model').forEach((x) => x.getAttribute('data-sint-ch')); return performance.now() - t; });
 check('lista grande: os cards continuam com os selos certos (busca por Set)', igual(soSelos(await cards(SEL_HOME)).map(Boolean), [true, true, true, true, false, true, true, true, true].map((x, i) => (i === 8 ? false : x))) || (await cards(SEL_HOME)).filter((c) => c.selo).length >= 6, soSelos(await cards(SEL_HOME)));
 st.insc.n = 250; st.insc.extra = [{ uc: 'UC' + 'e'.repeat(22), h: '@café' }];
+
+// ───────────────────────── 12b) ligar sem lista: busca na hora, "Carregando…" e "N canais"; motivo quando não dá ─────────────────────────
+const abrirPainel = async () => { await p.evaluate(() => document.querySelector('sintonia-ui').shadowRoot.querySelector('.fab').click()); };
+const textoPainel = async (re) => until(async () => { const e = await estado(p); return re.test(e.painelTexto) ? e.painelTexto : null; }, 12000);
+await setSync({ seloInscrito: false }); await sw.evaluate(() => chrome.storage.local.remove('st.inscritos'));
+await p.goto(`${URL_}/?login=1`); await p.waitForSelector('yt-lockup-view-model'); await wait(800);
+st.insc.atrasoMs = 2500; const n3 = st.inscPedidos.length;
+await abrirPainel();
+await setSync({ seloInscrito: true });
+check('ligar a chave sem lista: o painel mostra "Carregando suas inscrições…"', !!(await textoPainel(/Carregando suas inscrições…/)));
+check('… e depois "N canais · atualizada agora" (buscou na hora, 3 pedidos)', !!(await textoPainel(/\d+ canais · atualizada agora/)) && st.inscPedidos.length === n3 + 3);
+await p.keyboard.press('Escape');
+st.insc.atrasoMs = 0;
+for (const [modo, re, nome] of [['vazio', /A lista veio vazia/, 'lista vazia (0 canais)'], ['erro', /Falha ao ler a lista de inscrições \(http 500\)/, 'falha de leitura (HTTP 500)']]) {
+  st.insc.modo = modo; await sw.evaluate(() => chrome.storage.local.remove('st.inscritos'));
+  await p.reload(); await p.waitForSelector('yt-lockup-view-model'); await wait(1500);
+  await abrirPainel();
+  check(`painel mostra o motivo: ${nome}`, !!(await textoPainel(re)), (await estado(p)).painelTexto.slice(0, 220));
+  await p.keyboard.press('Escape');
+}
+st.insc.modo = 'ok';
+await abrirPainel();
+await p.evaluate(() => document.querySelector('sintonia-ui').shadowRoot.querySelector('[data-insc="atualizar"]').click());
+check('depois do erro, "Atualizar lista" lê de novo e mostra "N canais"', !!(await textoPainel(/\d+ canais · atualizada agora/)));
+await p.keyboard.press('Escape');
 
 // ───────────────────────── 13) sem login: quieto ─────────────────────────
 const antesSL = { n: st.inscPedidos.length };

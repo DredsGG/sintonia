@@ -2,6 +2,9 @@
 // Frases curtas, do ponto de vista de quem usa. Aparece uma vez, na primeira abertura depois da atualização.
 globalThis.SINT_NOVIDADES = {
   pt: {
+    '1.2.1': [
+      'O selo Inscrito agora aparece com a palavra (✓ Inscrito, em verde); ligue em Ajustes → Canais em que você é inscrito. O painel mostra "Carregando suas inscrições…" e quantos canais foram lidos, ou o motivo se não der.',
+    ],
     '1.2.0': [
       'Selo "Inscrito": um ✓ ao lado do nome do canal nos vídeos do início, dos relacionados e da busca quando você já é inscrito (Ajustes > Canais em que você é inscrito).',
       'Dá para esmaecer os vídeos de canais inscritos (voltam ao normal com o mouse; nunca esconde). A Sintonia lê a sua lista de inscrições, só leitura, e guarda só no navegador.',
@@ -81,6 +84,9 @@ globalThis.SINT_NOVIDADES = {
     ],
   },
   en: {
+    '1.2.1': [
+      'The Subscribed badge now shows the word (a green ✓ Subscribed); turn it on in Settings → Channels you subscribe to. The menu shows "Reading your subscription list…" and how many channels were read, or the reason if it fails.',
+    ],
     '1.2.0': [
       '"Subscribed" badge: a ✓ next to the channel name on videos in Home, related and search when you already subscribe (Settings > Channels you subscribe to).',
       'You can also fade videos from subscribed channels (back to normal on hover; it never hides anything). Sintonia reads your subscription list, read-only, and keeps it only in your browser.',
@@ -160,6 +166,9 @@ globalThis.SINT_NOVIDADES = {
     ],
   },
   es: {
+    '1.2.1': [
+      'La insignia Suscrito ahora aparece con la palabra (✓ Suscrito, en verde); actívala en Ajustes → Canales a los que estás suscrito. El panel muestra "Leyendo tu lista de suscripciones…" y cuántos canales se leyeron, o el motivo si falla.',
+    ],
     '1.2.0': [
       'Insignia "Suscrito": un ✓ junto al nombre del canal en los videos de Inicio, relacionados y búsqueda cuando ya estás suscrito (Ajustes > Canales a los que estás suscrito).',
       'También puedes atenuar los videos de canales suscritos (vuelven a la normalidad al pasar el mouse; nunca oculta nada). Sintonia lee tu lista de suscripciones, solo lectura, y la guarda solo en tu navegador.',
